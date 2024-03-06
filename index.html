@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bitcoin Price Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://js.pusher.com/8.0.1/pusher.min.js"></script>
+</head>
+<body>
+    <canvas id="myChart"></canvas>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var pusher = new Pusher('6f954cb4c88b9536d696', { cluster: 'eu', forceTLS: true });
+            var channel = pusher.subscribe('my-channel');
+            var ctx = document.getElementById('myChart').getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'bubble',
+                data: {
+                    datasets: [{
+                        label: 'Bitcoin Price',
+                        data: [],
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'minute',
+                                stepSize: 1,
+                                displayFormats: {
+                                    minute: 'HH:mm:ss'
+                                }
+                            },
+                            grid: {
+                                display: true
+                            }
+                        },
+                        y: {
+                            display: true
+                        }
+                    }
+                }
+            });
+            var currentTime = new Date().getTime();
+            channel.bind('crypto-update', function(data) {
+                currentTime += 60000; 
+                myChart.data.datasets[0].data.push({
+                    x: new Date(currentTime),
+                    y: data.bitcoinPrice,
+                    r: 20
+                });
+                myChart.update();
+            });
+        });
+    </script>
+</body>
+</html>
+
+
+
+
